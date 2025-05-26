@@ -18,9 +18,11 @@ const supabase: Handle = async ({ event, resolve }) => {
        * the cookie options. Setting `path` to `/` replicates previous/
        * standard behavior.
        */
+
+      // REMOVE SECURE: If you are using HTTPS, set `secure: true` FOR DEVELOPMENT ONLY
       setAll: (cookiesToSet) => {
         cookiesToSet.forEach(({ name, value, options }) => {
-          event.cookies.set(name, value, { ...options, path: '/' })
+          event.cookies.set(name, value, { ...options, path: '/', secure: false, })
         })
       },
     },
