@@ -36,7 +36,11 @@
 		"d3-array": "^3.2.4",
 		"d3-scale": "^4.0.2",
 		"d3-shape": "^3.2.0",
+		"install": "^0.13.0",
 		"marked": "^15.0.12",
-		"mode-watcher": "0.5.1"
+		"mode-watcher": "0.5.1",
+		"svelte-sonner": "^1.0.3",
+		"sveltekit-superforms": "^2.25.0",
+		"zod": "^3.25.28"
 	}
 }

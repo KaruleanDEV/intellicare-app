@@ -1,86 +1,56 @@
 <!-- records -->
 <script lang="ts">
   import type { PageData } from "./$types";
-  import { Button } from "$lib/components/ui/button/index.js";
   import * as Sheet from "$lib/components/ui/sheet/index.js";
   import { buttonVariants } from "$lib/components/ui/button/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
-  import { Calendar as CalendarPrimitive } from "bits-ui";
-  import {
-    DateFormatter,
-    getLocalTimeZone,
-    today,
-    type DateValue,
-  } from "@internationalized/date";
-  import * as Calendar from "$lib/components/ui/calendar/index.js";
   import * as Select from "$lib/components/ui/select/index.js";
-  import { cn } from "$lib/utils.js";
+  import SuperDebug, { superForm } from "sveltekit-superforms";
+  import { toast } from "svelte-sonner";
+
   let { data }: { data: PageData } = $props();
+  let isSheetOpen = $state(false);
 
-  let value = $state<DateValue>();
-  let placeholder = $state<DateValue>();
-
-  const currentDate = today(getLocalTimeZone());
-
-  const monthFmt = new DateFormatter("en-US", {
-    month: "long",
+  // Handle superform
+  const {
+    form,
+    errors,
+    enhance: superformEnchance,
+    message,
+  } = superForm(data.form, {
+    dataType: "json",
+    onResult({ result }) {
+      if (result.type === "success") {
+        toast.success("Patient added successfully!");
+        isSheetOpen = false; // Close the sheet on success
+      } else if (result.type === "error") {
+        toast.error("Failed to add patient.");
+      }
+    },
   });
 
-  const monthOptions = Array.from({ length: 12 }, (_, i) => {
-    const month = currentDate.set({ month: i + 1 });
-    return {
-      value: month.month,
-      label: monthFmt.format(month.toDate(getLocalTimeZone())),
-    };
-  });
-
-  const yearOptions = Array.from({ length: 100 }, (_, i) => ({
-    label: String(new Date().getFullYear() - i),
-    value: new Date().getFullYear() - i,
-  }));
-
-  const defaultYear = $derived(
-    placeholder
-      ? { value: placeholder.year, label: String(placeholder.year) }
-      : undefined
-  );
-
-  const defaultMonth = $derived(
-    placeholder
-      ? {
-          value: placeholder.month,
-          label: monthFmt.format(placeholder.toDate(getLocalTimeZone())),
-        }
-      : undefined
-  );
-
-  const monthLabel = $derived(
-    monthOptions.find((m) => m.value === defaultMonth?.value)?.label ??
-      "Select a month"
-  );
-
-  //gender options || enforce server-side validation later
+  //gender options || enforce server-side validation
   const genders = [
+    { gender: "", label: "None" },
     { gender: "Male", label: "Male" },
     { gender: "Female", label: "Female" },
-    { gender: "Other", label: "Other" },
   ];
 
-  let gender = $state("");
-
   const triggerContentGender = $derived(
-    genders.find((f) => f.gender === gender)?.label ?? "Select a gender"
+    genders.find((f) => f.gender === $form.gender)?.label ?? "Select a gender"
   );
-  //Nationality options || enforce server-side validation later
+  //Nationality options || enforce server-side validation
   const nationalities = [
+    { national: "", label: "None" },
     { national: "Malaysian", label: "Malaysian" },
     { national: "Singaporean", label: "Singaporean" },
     { national: "Other", label: "Other" },
   ];
-  let national = $state("");
+
   const triggerContentNationality = $derived(
-    nationalities.find((f) => f.national === national)?.label ?? "Select Nationality"
+    nationalities.find((f) => f.national === $form.nationality)?.label ??
+      "Select Nationality"
   );
 </script>
 
@@ -93,178 +63,141 @@
   </p>
   <!-- START SECTION | Only Staff Should See -->
   <div class="flex justify-end gap-4">
-    <Sheet.Root>
+    <Sheet.Root bind:open={isSheetOpen}>
       <Sheet.Trigger class="{buttonVariants({ variant: 'default' })} w-50"
         >+ Add Patient</Sheet.Trigger
       >
       <Sheet.Content side="right">
-        <Sheet.Header>
-          <Sheet.Title>Add Patients</Sheet.Title>
-          <Sheet.Description>
-            Register new patients to the system
-          </Sheet.Description>
-        </Sheet.Header>
-        <div class="grid flex-1 auto-rows-min gap-6 px-4">
-          <div class="grid gap-3">
-            <Label for="first_name" class="text-right">First Name</Label>
-            <Input id="first_name" value="" />
+        <form method="POST" action="?/addPatient" use:superformEnchance class="flex flex-col h-full">
+          <Sheet.Header>
+            <Sheet.Title>Add Patients</Sheet.Title>
+            <Sheet.Description>
+              Register new patients to the system
+            </Sheet.Description>
+          </Sheet.Header>
+          <div class="grid flex-1 auto-rows-min gap-6 px-4">
+            <div class="grid gap-3">
+              <Label for="first_name" class="text-right">First Name</Label>
+              <Input
+                type="text"
+                id="first_name"
+                name="first_name"
+                bind:value={$form.first_name}
+              />
+              {#if $errors.first_name}
+                <p class="text-red-500 text-sm">{$errors.first_name}</p>
+              {/if}
+            </div>
+            <div class="grid gap-3">
+              <Label for="last_name" class="text-right">Last Name</Label>
+              <Input
+                type="text"
+                id="last_name"
+                name="last_name"
+                bind:value={$form.last_name}
+              />
+              {#if $errors.last_name}
+                <p class="text-red-500 text-sm">{$errors.last_name}</p>
+              {/if}
+            </div>
+            <div class="grid gap-3">
+              <Label for="dob" class="text-right">Date Of Birth</Label>
+              <input
+                type="date"
+                id="dob"
+                name="date_of_birth"
+                bind:value={$form.date_of_birth}
+              />
+              {#if $errors.date_of_birth}
+                <p class="text-red-500 text-sm">{$errors.date_of_birth}</p>
+              {/if}
+            </div>
+            <div class="grid gap-3">
+              <Label for="Gender" class="text-right">Gender</Label>
+              <Select.Root
+                type="single"
+                name="gender"
+                bind:value={$form.gender}
+                onValueChange={(v) => {
+                  $form.gender = v as "Male" | "Female" | "Other";
+                }}
+              >
+                <Select.Trigger class="w-[180px]">
+                  {triggerContentGender}
+                </Select.Trigger>
+                <Select.Content>
+                  <Select.Group>
+                    <Select.Label>Genders</Select.Label>
+                    {#each genders as gender (gender.gender)}
+                      <Select.Item
+                        value={gender.gender}
+                        label={gender.label}
+                        disabled={gender.gender === "Other" ||
+                          gender.gender === ""}
+                      >
+                        {gender.label}
+                      </Select.Item>
+                    {/each}
+                  </Select.Group>
+                </Select.Content>
+              </Select.Root>
+              {#if $errors.gender}
+                <p class="text-red-500 text-sm">{$errors.gender}</p>
+              {/if}
+            </div>
+            <div class="grid gap-3">
+              <Label for="nationalities" class="text-right">Nationality</Label>
+              <Select.Root
+                type="single"
+                name="nationality"
+                bind:value={$form.nationality}
+                onValueChange={(v) => {
+                  $form.nationality = v as
+                    | "Malaysian"
+                    | "Singaporean"
+                    | "Other";
+                }}
+              >
+                <Select.Trigger class="w-[180px]">
+                  {triggerContentNationality}
+                </Select.Trigger>
+                <Select.Content>
+                  <Select.Group>
+                    <Select.Label>Nationality</Select.Label>
+                    {#each nationalities as national (national.national)}
+                      <Select.Item
+                        value={national.national}
+                        label={national.label}
+                        disabled={national.national === ""}
+                      >
+                        {national.label}
+                      </Select.Item>
+                    {/each}
+                  </Select.Group>
+                </Select.Content>
+                {#if $errors.nationality}
+                  <p class="text-red-500 text-sm">{$errors.nationality}</p>
+                {/if}
+              </Select.Root>
+            </div>
           </div>
-          <div class="grid gap-3">
-            <Label for="last_name" class="text-right">Last Name</Label>
-            <Input id="last_name" value="" />
-          </div>
-          <div class="grid gap-3">
-            <Label for="dob" class="text-right">Date Of Birth</Label>
-            <CalendarPrimitive.Root
-              type="single"
-              weekdayFormat="short"
-              class={cn("rounded-md border p-3")}
-              bind:value
-              bind:placeholder
+          <Sheet.Footer>
+            <button
+              type="submit"
+              class={buttonVariants({ variant: "outline" })}
             >
-              {#snippet children({ months, weekdays })}
-                <Calendar.Header
-                  class="flex w-full items-center justify-between gap-2"
-                >
-                  <Select.Root
-                    type="single"
-                    value={`${defaultMonth?.value}`}
-                    onValueChange={(v) => {
-                      if (!placeholder) return;
-                      if (v === `${placeholder.month}`) return;
-                      placeholder = placeholder.set({
-                        month: Number.parseInt(v),
-                      });
-                    }}
-                  >
-                    <Select.Trigger aria-label="Select month" class="w-[60%]">
-                      {monthLabel}
-                    </Select.Trigger>
-                    <Select.Content class="max-h-[200px] overflow-y-auto">
-                      {#each monthOptions as { value, label } (value)}
-                        <Select.Item value={`${value}`} {label} />
-                      {/each}
-                    </Select.Content>
-                  </Select.Root>
-                  <Select.Root
-                    type="single"
-                    value={`${defaultYear?.value}`}
-                    onValueChange={(v) => {
-                      if (!v || !placeholder) return;
-                      if (v === `${placeholder?.year}`) return;
-                      placeholder = placeholder.set({
-                        year: Number.parseInt(v),
-                      });
-                    }}
-                  >
-                    <Select.Trigger aria-label="Select year" class="w-[40%]">
-                      {defaultYear?.label ?? "Select year"}
-                    </Select.Trigger>
-                    <Select.Content class="max-h-[200px] overflow-y-auto">
-                      {#each yearOptions as { value, label } (value)}
-                        <Select.Item value={`${value}`} {label} />
-                      {/each}
-                    </Select.Content>
-                  </Select.Root>
-                </Calendar.Header>
-                <Calendar.Months>
-                  {#each months as month (month)}
-                    <Calendar.Grid>
-                      <Calendar.GridHead>
-                        <Calendar.GridRow class="flex">
-                          {#each weekdays as weekday (weekday)}
-                            <Calendar.HeadCell>
-                              {weekday.slice(0, 2)}
-                            </Calendar.HeadCell>
-                          {/each}
-                        </Calendar.GridRow>
-                      </Calendar.GridHead>
-                      <Calendar.GridBody>
-                        {#each month.weeks as weekDates (weekDates)}
-                          <Calendar.GridRow class="mt-2 w-full">
-                            {#each weekDates as date (date)}
-                              <Calendar.Cell
-                                class="select-none"
-                                {date}
-                                month={month.value}
-                              >
-                                <Calendar.Day />
-                              </Calendar.Cell>
-                            {/each}
-                          </Calendar.GridRow>
-                        {/each}
-                      </Calendar.GridBody>
-                    </Calendar.Grid>
-                  {/each}
-                </Calendar.Months>
-              {/snippet}
-            </CalendarPrimitive.Root>
-          </div>
-          <div class="grid gap-3">
-            <Label for="Gender" class="text-right">Gender</Label>
-            <Select.Root
-              type="single"
-              name="selectgenders"
-              onValueChange={(v) => {
-                gender = v;
-              }}
+              Submit
+            </button>
+            <Sheet.Close class={buttonVariants({ variant: "destructive" })}
+              >Cancel</Sheet.Close
             >
-              <Select.Trigger class="w-[180px]">
-                {triggerContentGender}
-              </Select.Trigger>
-              <Select.Content>
-                <Select.Group>
-                  <Select.Label>Genders</Select.Label>
-                  {#each genders as gender (gender.gender)}
-                    <Select.Item
-                      value={gender.gender}
-                      label={gender.label}
-                      disabled={gender.gender === "Other"}
-                    >
-                      {gender.label}
-                    </Select.Item>
-                  {/each}
-                </Select.Group>
-              </Select.Content>
-            </Select.Root>
-          </div>
-          <div class="grid gap-3">
-            <Label for="nationalities" class="text-right">Nationality</Label>
-            <Select.Root
-              type="single"
-              name="selectnationalities"
-              onValueChange={(v) => {
-                national = v;
-              }}
-            >
-              <Select.Trigger class="w-[180px]">
-                {triggerContentNationality}
-              </Select.Trigger>
-              <Select.Content>
-                <Select.Group>
-                  <Select.Label>Genders</Select.Label>
-                  {#each nationalities as national (national.national)}
-                    <Select.Item
-                      value={national.national}
-                      label={national.label}
-                    >
-                      {national.label}
-                    </Select.Item>
-                  {/each}
-                </Select.Group>
-              </Select.Content>
-            </Select.Root>
-          </div>
-        </div>
-        <Sheet.Footer>
-          <Sheet.Close class={buttonVariants({ variant: "outline" })}
-            >Submit</Sheet.Close
-          >
-        </Sheet.Footer>
+          </Sheet.Footer>
+        </form>
       </Sheet.Content>
     </Sheet.Root>
   </div>
   <!-- END SECTION | ONLY STAFF SHOULD SEE -->
+  <hr class="border-t border-gray-200" />
   <div class="relative w-full overflow-auto">
     <table class="w-full caption-bottom text-sm">
       <thead>
@@ -289,6 +222,11 @@
           >
             Gender
           </th>
+          <th
+            class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0"
+          >
+            Nationality
+          </th>
         </tr>
       </thead>
       <tbody class="[&_tr:last-child]:border-0">
@@ -307,6 +245,9 @@
             >
             <td class="p-4 align-middle [&:has([role=checkbox])]:pr-0"
               >{record.gender}</td
+            >
+            <td class="p-4 align-middle [&:has([role=checkbox])]:pr-0"
+              >{record.nationality}</td
             >
           </tr>
         {/each}
