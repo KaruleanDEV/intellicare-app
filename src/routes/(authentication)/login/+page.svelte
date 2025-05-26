@@ -1,12 +1,10 @@
 <!-- LOGIN PAGE -->
-
 <script lang="ts">
 	import { Button } from "$lib/components/ui/button/index.js";
 	import { Input } from "$lib/components/ui/input/index.js";
 	import { Label } from "$lib/components/ui/label/index.js";
 </script>
-
-<div class="w-full lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
+<div class="w-full min-h-screen lg:grid lg:min-h-[600px] lg:grid-cols-2 xl:min-h-[800px]">
 	<div class="flex items-center justify-center py-12">
 		<div class="mx-auto grid w-[350px] gap-6">
 			<div class="grid gap-2 text-center">
