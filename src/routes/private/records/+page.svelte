@@ -16,6 +16,7 @@
   import * as Calendar from "$lib/components/ui/calendar/index.js";
   import * as Select from "$lib/components/ui/select/index.js";
   import { cn } from "$lib/utils.js";
+  let { data }: { data: PageData } = $props();
 
   let value = $state<DateValue>();
   let placeholder = $state<DateValue>();
@@ -59,7 +60,28 @@
       "Select a month"
   );
 
-  let { data }: { data: PageData } = $props();
+  //gender options || enforce server-side validation later
+  const genders = [
+    { gender: "Male", label: "Male" },
+    { gender: "Female", label: "Female" },
+    { gender: "Other", label: "Other" },
+  ];
+
+  let gender = $state("");
+
+  const triggerContentGender = $derived(
+    genders.find((f) => f.gender === gender)?.label ?? "Select a gender"
+  );
+  //Nationality options || enforce server-side validation later
+  const nationalities = [
+    { national: "Malaysian", label: "Malaysian" },
+    { national: "Singaporean", label: "Singaporean" },
+    { national: "Other", label: "Other" },
+  ];
+  let national = $state("");
+  const triggerContentNationality = $derived(
+    nationalities.find((f) => f.national === national)?.label ?? "Select Nationality"
+  );
 </script>
 
 <main class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
@@ -180,16 +202,63 @@
           </div>
           <div class="grid gap-3">
             <Label for="Gender" class="text-right">Gender</Label>
-            <Input id="Gender" value="dropdownmenu" />
+            <Select.Root
+              type="single"
+              name="selectgenders"
+              onValueChange={(v) => {
+                gender = v;
+              }}
+            >
+              <Select.Trigger class="w-[180px]">
+                {triggerContentGender}
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Group>
+                  <Select.Label>Genders</Select.Label>
+                  {#each genders as gender (gender.gender)}
+                    <Select.Item
+                      value={gender.gender}
+                      label={gender.label}
+                      disabled={gender.gender === "Other"}
+                    >
+                      {gender.label}
+                    </Select.Item>
+                  {/each}
+                </Select.Group>
+              </Select.Content>
+            </Select.Root>
           </div>
           <div class="grid gap-3">
-            <Label for="username" class="text-right">Ethnicity</Label>
-            <Input id="username" value="ETH" />
+            <Label for="nationalities" class="text-right">Nationality</Label>
+            <Select.Root
+              type="single"
+              name="selectnationalities"
+              onValueChange={(v) => {
+                national = v;
+              }}
+            >
+              <Select.Trigger class="w-[180px]">
+                {triggerContentNationality}
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Group>
+                  <Select.Label>Genders</Select.Label>
+                  {#each nationalities as national (national.national)}
+                    <Select.Item
+                      value={national.national}
+                      label={national.label}
+                    >
+                      {national.label}
+                    </Select.Item>
+                  {/each}
+                </Select.Group>
+              </Select.Content>
+            </Select.Root>
           </div>
         </div>
         <Sheet.Footer>
           <Sheet.Close class={buttonVariants({ variant: "outline" })}
-            >Save changes</Sheet.Close
+            >Submit</Sheet.Close
           >
         </Sheet.Footer>
       </Sheet.Content>
