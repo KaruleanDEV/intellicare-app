@@ -9,7 +9,7 @@ Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/your-username/intellicare-app.git
 cd intellicare-app
-npm install
+bun install
 ```
 
 ## 🛠️ Development
@@ -17,13 +17,13 @@ npm install
 Start the development server:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 To open the app automatically in your browser:
 
 ```bash
-npm run dev -- --open
+bun run dev -- --open
 ```
 
 ## 🏗️ Building for Production
@@ -31,13 +31,13 @@ npm run dev -- --open
 Create an optimized production build:
 
 ```bash
-npm run build
+bun run build
 ```
 
 Preview the production build locally:
 
 ```bash
-npm run preview
+bun run preview
 ```
 
 ## 🚢 Deployment
@@ -51,4 +51,4 @@ To deploy, install the appropriate [SvelteKit adapter](https://svelte.dev/docs/k
 
 ---
 
-Made with ❤️ using Svelte and sv.
+Made with ❤️ using Svelte, SvelteKit, Tailwind & Bun.

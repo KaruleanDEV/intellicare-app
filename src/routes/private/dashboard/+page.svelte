@@ -33,7 +33,7 @@
   let isLoadingAI: boolean = $state(false);
 
   // AI settings from client
-  let selectedModel: string = $state("gemma3:12b");
+  let selectedModel: string = $state("gemma3:1b");
   let useStreaming: boolean = $state(true);
 
   async function fetchAIResponse() {

@@ -1,9 +1,8 @@
 import type { PageServerLoad, Actions } from "./$types";
-import { z } from "zod";
 import { zod } from "sveltekit-superforms/adapters";
 import { superValidate, message } from "sveltekit-superforms/server";
 import { redirect } from "@sveltejs/kit";
-import type { PatientRecord, MyPageData, PatientFormSchema } from "$lib/types";
+import type { PatientRecord } from "$lib/types";
 import { patientSchema } from "$lib/schemas/patientSchema";
 
 export const load: PageServerLoad = async ({ locals }) => {

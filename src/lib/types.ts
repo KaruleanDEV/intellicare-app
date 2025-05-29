@@ -1,7 +1,7 @@
 // src/lib/types.ts
 import type { SuperForm } from 'sveltekit-superforms';
 
-// Define the PatientRecord interface for your table data
+// Define the PatientRecord
 export interface PatientRecord {
     id: string; // UUID
     first_name: string;
@@ -16,7 +16,7 @@ export interface PatientRecord {
     };
 }
 
-// Define the shape of patient form data (matching your patientSchema in +page.server.ts)
+// Define the shape of patient form data (matching patientSchema in +page.server.ts)
 export type PatientFormSchema = {
     first_name: string;
     last_name: string;
