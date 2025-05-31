@@ -1,23 +1,31 @@
 <script lang="ts">
-  import { Button } from '$lib/components/ui/button';
-  import { Input } from '$lib/components/ui/input';
-  import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
-  import { ScrollArea } from '$lib/components/ui/scroll-area';
-  import { Separator } from '$lib/components/ui/separator';
+  import { Button } from "$lib/components/ui/button";
+  import { Input } from "$lib/components/ui/input";
+  import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+  } from "$lib/components/ui/card";
+  import { ScrollArea } from "$lib/components/ui/scroll-area";
+  import { Separator } from "$lib/components/ui/separator";
   import type { PageData } from "./$types";
 
-  let userInput = $state('');
-  // Simplified chatMessages structure to align with agent's direct output
-  let chatMessages = $state<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  let userInput = $state("");
+  let chatMessages = $state<
+    Array<{
+      role: "user" | "assistant";
+      content: string;
+      thinkingProcess?: { step: string; details: any }[];
+    }>
+  >([]);
   let isLoading = $state(false);
-  let { data }: { data: PageData } = $props(); // If you're still using PageData for something
+  let { data }: { data: PageData } = $props();
 
   // Automatically detect user's timezone and current time
   let userTimeZone: string;
   let userCurrentTime: string;
 
-  // Automatically detect user's timezone and current time
-  // This block runs once when the component is initialized
   userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   userCurrentTime = new Intl.DateTimeFormat("en-US", {
     year: "numeric",
@@ -45,26 +53,26 @@
       return;
     }
 
-    const currentUserInput = userInput; // Capture current input
-    userInput = ''; // Clear input immediately
+    const currentUserInput = userInput;
+    userInput = "";
     isLoading = true;
 
-    // Add user's message to chat history
-    chatMessages = [...chatMessages, { role: 'user', content: currentUserInput }];
+    chatMessages = [
+      ...chatMessages,
+      { role: "user", content: currentUserInput },
+    ];
 
     try {
-      // Prepare chat history for the agent.
-      // The system prompt is added by the backend, so we only send user/assistant messages.
-      const serializedChatHistory = chatMessages.map(msg => ({
+      const serializedChatHistory = chatMessages.map((msg) => ({
         role: msg.role,
-        content: msg.content
+        content: msg.content,
       }));
 
       const requestPayload = {
-        message: currentUserInput, // The user's current message
+        message: currentUserInput,
         chatHistory: serializedChatHistory,
-        userTimeZone: userTimeZone, // Send user's detected timezone
-        userCurrentTime: userCurrentTime, // Send user's detected current time
+        userTimeZone: userTimeZone,
+        userCurrentTime: userCurrentTime,
       };
 
       const response = await fetch("/private/api/agents", {
@@ -75,33 +83,49 @@
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get response from AI agent.');
+        throw new Error(
+          errorData.error || "Failed to get response from AI agent."
+        );
       }
 
-      // The agent API returns a single JSON object, not a stream.
       const responseData = await response.json();
 
       if (responseData.message) {
-        // Add the agent's direct message to chat history
-        chatMessages = [...chatMessages, { role: 'assistant', content: responseData.message }];
+        chatMessages = [
+          ...chatMessages,
+          {
+            role: "assistant",
+            content: responseData.message,
+            thinkingProcess: responseData.thinkingProcess,
+          },
+        ];
       } else if (responseData.error) {
         // Handle errors returned by the agent
-        chatMessages = [...chatMessages, { role: 'assistant', content: `Error from agent: ${responseData.error}` }];
+        chatMessages = [
+          ...chatMessages,
+          {
+            role: "assistant",
+            content: `Error from agent: ${responseData.error}`,
+            thinkingProcess: responseData.thinkingProcess,
+          },
+        ];
       } else {
         // Fallback for unexpected response structure
-        chatMessages = [...chatMessages, { role: 'assistant', content: 'Received an unexpected response from the AI.' }];
+        chatMessages = [
+          ...chatMessages,
+          {
+            role: "assistant",
+            content: "Received an unexpected response from the AI.",
+            thinkingProcess: responseData.thinkingProcess,
+          },
+        ];
       }
-
-      // After a successful exchange, optionally update chatHistory with the backend's full history
-      // This is crucial if the backend's chatHistory array includes internal tool calls
-      // that you might not want to display directly to the user but need for the LLM context.
-      // If you only want to display user-facing messages, filter responseData.chatHistory
-      // or stick to updating `chatMessages` with `responseData.message` as above.
-      // For this example, we'll keep it simple and just add the assistant's final reply.
-
     } catch (error: any) {
-      console.error('Error sending message:', error);
-      chatMessages = [...chatMessages, { role: 'assistant', content: `Error: ${error.message}` }];
+      console.error("Error sending message:", error);
+      chatMessages = [
+        ...chatMessages,
+        { role: "assistant", content: `Error: ${error.message}` },
+      ];
     } finally {
       isLoading = false;
     }
@@ -133,6 +157,34 @@
                   {message.content}
                 </div>
               </div>
+
+              {#if message.role === "assistant" && message.thinkingProcess && message.thinkingProcess.length > 0}
+                <div class="flex justify-start">
+                  <div
+                    class="max-w-[70%] rounded-lg p-3 text-sm bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 mt-2"
+                  >
+                    <details>
+                      <summary class="font-semibold cursor-pointer"
+                        >Thinking Process</summary
+                      >
+                      <div class="mt-2 space-y-2 text-xs">
+                        {#each message.thinkingProcess as step}
+                          <div
+                            class="p-1 rounded-sm bg-gray-50 dark:bg-gray-700"
+                          >
+                            <strong>{step.step}:</strong>
+                            <pre
+                              class="whitespace-pre-wrap break-words overflow-x-auto text-gray-700 dark:text-gray-300">
+                              {JSON.stringify(step.details, null, 2)}
+                            </pre>
+                          </div>
+                        {/each}
+                      </div>
+                    </details>
+                  </div>
+                </div>
+              {/if}
+
               {#if i < chatMessages.length - 1}
                 <Separator />
               {/if}
