@@ -80,7 +80,7 @@
         userCurrentTime: userCurrentTime,
       };
 
-      const response = await fetch("http://192.168.3.56:5678/webhook/d866b9fc-779b-40d7-901a-ea5f3c41114f", {
+      const response = await fetch("/private/api/agents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ chatInput: currentUserInput }),
@@ -160,7 +160,7 @@
 
     try {
       // Replace with your actual backend upload endpoint
-      const response = await fetch("http://localhost:5678/webhook/28a7827d-72cc-494d-9532-1c42efa8af32", {
+      const response = await fetch("/private/api/agents", {
         method: "POST",
         body: formData,
       });
