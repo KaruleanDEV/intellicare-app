@@ -5,7 +5,7 @@ import type { PatientRecord } from "$lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const ollama = new Ollama({ host: "http://localhost:11434" });
-const ai_model = "deepseek-r1:8b";
+const ai_model = "qwen3:4b";
 
 const SYSTEM_PROMPT = `
 You are Intellicare-AI a hospital administration AI agent. You're always interacting with a system. You have the ability to do function calls.
@@ -179,13 +179,8 @@ async function execute_sql_query(
     if (!data || data.length === 0) {
       return "Query executed successfully, but no data was returned.";
     }
-
-    // --- FIX: Explicitly type the 'row' parameter ---
     const formattedResults = data
       .map((row: { result_json: Record<string, any> }) => {
-        // 'row' is an object like: { result_json: { col1: val1, col2: val2, ... } }
-        // Record<string, any> is a TypeScript utility type for an object
-        // where keys are strings and values can be any type.
         return JSON.stringify(row.result_json);
       })
       .join("\n"); // Each result on a new line

@@ -35,6 +35,7 @@
 		"@langchain/community": "^0.3.44",
 		"@langchain/core": "^0.3.57",
 		"@langchain/ollama": "^0.2.0",
+		"@modelcontextprotocol/sdk": "^1.12.1",
 		"@supabase/ssr": "^0.6.1",
 		"@supabase/supabase-js": "^2.49.8",
 		"d3-array": "^3.2.4",
