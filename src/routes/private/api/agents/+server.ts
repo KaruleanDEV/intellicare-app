@@ -1,4 +1,9 @@
 // src/routes/private/api/agents/+server.ts
+
+
+// Prototype: SvelteKit API route to handle requests for the Intellicare AI agent
+// This route interacts with the Ollama AI model to process user requests and perform actions like scheduling appointments or querying patient records.
+// Use N8N for advanced workflows and task automation instead. This code is a basic prototype and should be extended with proper error handling, security, and validation for production use.
 import { json, type RequestHandler } from "@sveltejs/kit";
 import { Ollama } from "ollama";
 import type { PatientRecord } from "$lib/types";
